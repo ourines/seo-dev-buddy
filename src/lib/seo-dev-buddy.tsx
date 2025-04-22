@@ -99,6 +99,9 @@ const initialState = {
   hasStructuredData: false,
   headingStructure: { h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 } as HeadingStructure,
   publicationDate: null as string | null,
+  internalLinkCount: 0,
+  externalLinkCount: 0,
+  wordCount: 0,
 };
 
 export function SeoDevBuddy() {
@@ -128,6 +131,66 @@ export function SeoDevBuddy() {
               missingAltCount++;
             }
           });
+
+          // --- Link Counting Logic ---
+          const links = document.querySelectorAll('a');
+          let internalLinks = 0;
+          let externalLinks = 0;
+          const currentHostname = window.location.hostname;
+
+          links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+              try {
+                const url = new URL(href, window.location.origin); // Resolve relative URLs
+                if (url.hostname === currentHostname || href.startsWith('/') || href.startsWith('#')) {
+                  internalLinks++;
+                } else if (href.startsWith('http://') || href.startsWith('https://')) {
+                  externalLinks++;
+                }
+                // Ignore mailto:, tel:, etc.
+              } catch (e) {
+                // Ignore invalid URLs
+                if (href.startsWith('/') || href.startsWith('#')) {
+                  internalLinks++; // Treat relative paths/fragments as internal
+                } else if (!href.startsWith('mailto:') && !href.startsWith('tel:') && href !== '#') {
+                  // Basic check for external if URL parsing failed but looks like a link
+                  console.warn(`[SEO Dev Buddy] Could not parse URL: ${href}`);
+                }
+              }
+            }
+          });
+          // --- End Link Counting Logic ---
+
+          // --- Word Count Logic ---
+          let mainContentElement: HTMLElement | null = null;
+          const selectors = [
+            'main',
+            'article[role="main"]',
+            'div[role="main"]',
+            '#content', // Common IDs
+            '#main',
+            '#main-content',
+            '#primary'
+          ];
+
+          for (const selector of selectors) {
+            mainContentElement = document.querySelector(selector);
+            if (mainContentElement) break;
+          }
+
+          let textContent = '';
+          if (mainContentElement) {
+            textContent = mainContentElement.innerText || mainContentElement.textContent || '';
+          } else {
+            // Fallback to body, trying to exclude common non-content areas
+            const bodyClone = document.body.cloneNode(true) as HTMLElement;
+            bodyClone.querySelectorAll('header, footer, nav, script, style, noscript, svg, aside').forEach(el => el.remove());
+            textContent = bodyClone.innerText || bodyClone.textContent || '';
+          }
+
+          const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+          // --- End Word Count Logic ---
 
           setSeoData({
             title: document.title,
@@ -161,6 +224,9 @@ export function SeoDevBuddy() {
               h5: document.querySelectorAll('h5').length,
               h6: document.querySelectorAll('h6').length,
             },
+            internalLinkCount: internalLinks,
+            externalLinkCount: externalLinks,
+            wordCount: wordCount,
           });
         } catch (error) {
           console.error("[SEO Dev Buddy] Error during analysis:", error);
@@ -251,6 +317,11 @@ export function SeoDevBuddy() {
         return 'success';
       case 'Publication Date':
         return statusValue ? 'success' : 'success'; // Success if present, also success (neutral) if absent
+      case 'Internal Links':
+      case 'External Links':
+        return 'success';
+      case 'Word Count':
+        return statusValue >= 300 ? 'success' : 'warning'; // Warn if less than 300 words
       default:
         return 'success';
     }
@@ -292,6 +363,9 @@ export function SeoDevBuddy() {
         'Viewport': 'viewportMeta',
         'Structured Data': 'hasStructuredData',
         'Publication Date': 'publicationDate',
+        'Internal Links': 'internalLinkCount',
+        'External Links': 'externalLinkCount',
+        'Word Count': 'wordCount',
       };
       const dataKey = keyMap[label];
 
@@ -396,6 +470,9 @@ export function SeoDevBuddy() {
               <SeoCheckSection title="Content & Accessibility">
                 {renderCheckItem('Image Alts', `${seoData.imageAltInfo.missingAlt} missing / ${seoData.imageAltInfo.total} total`)}
                 {renderCheckItem('Headings', formatHeadingCounts(seoData.headingStructure))}
+                {renderCheckItem('Internal Links', seoData.internalLinkCount)}
+                {renderCheckItem('External Links', seoData.externalLinkCount)}
+                {renderCheckItem('Word Count', seoData.wordCount)}
               </SeoCheckSection>
 
               <SeoCheckSection title="Open Graph">
