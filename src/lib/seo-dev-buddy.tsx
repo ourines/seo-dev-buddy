@@ -264,6 +264,47 @@ export function SeoDevBuddy() {
     }
   };
 
+  // Helper to determine text color class for item value based on status
+  const getItemValueClassName = (label: string, status: any, value: any): string => {
+    const baseClass = "text-foreground break-words overflow-hidden"; // Default class
+
+    // Use renderStatusIcon logic implicitly to determine severity
+    if (status === null || status === undefined) {
+      if (['Title', 'Description', 'H1 Count', 'Canonical', 'Robots', 'OG Title', 'OG Desc', 'OG Image', 'OG URL', 'OG Type', 'Twitter Card', 'Twitter Title', 'Twitter Desc', 'Twitter Image'].includes(label)) {
+        // Missing required fields are warnings
+        return `${baseClass} text-yellow-500`;
+      }
+      return `${baseClass} text-muted-foreground/70`; // Neutral if optional/missing
+    }
+
+    if (label === 'Robots') {
+      const valueString = String(status);
+      if (valueString.includes('noindex') || valueString.includes('nofollow') || valueString.includes('none')) {
+        return `${baseClass} text-red-500`; // Error
+      }
+    }
+
+    if (label === 'Image Alts') {
+      const info = status as ImageAltInfo;
+      if (info.total > 0 && info.missingAlt === info.total) return `${baseClass} text-red-500`; // Error
+      if (info.total > 0 && info.missingAlt > 0) return `${baseClass} text-yellow-500`; // Warning
+      // No need for special class if all alts are present or total is 0
+    }
+
+    if (label === 'Description') {
+      if (typeof status === 'string' && status.startsWith('Too')) return `${baseClass} text-yellow-500`; // Warning
+      if (status === 'Missing') return `${baseClass} text-yellow-500`; // Warning
+    }
+
+    if (label === 'H1 Count' && status !== 1) {
+      return `${baseClass} text-yellow-500`; // Warning if not exactly 1 H1
+    }
+
+    // Add other specific value checks here if needed
+
+    return baseClass; // Default color if no specific issue detected
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       {/* ... PopoverTrigger ... */}
@@ -279,14 +320,14 @@ export function SeoDevBuddy() {
       </PopoverTrigger>
       <PopoverContent
         style={{ maxWidth: '420px' }} // Keep adjusted max-width
-        className="mr-4 mb-2 bg-background shadow-xl border-2 border-border/40 rounded-lg text-foreground text-sm max-h-[60vh] overflow-y-auto p-0"
+        className="mr-4 mb-2 bg-background shadow-xl border border-border rounded-lg text-foreground text-sm max-h-[60vh] overflow-y-auto p-0"
         side="top"
         align="end"
         onOpenAutoFocus={(e: Event) => e.preventDefault()}
       >
         <div className="flex flex-col">
           {/* Header */}
-          <div className="p-3 pb-2 space-y-1 border-b border-border/50">
+          <div className="p-3 pb-2 space-y-1 border-b border-border">
             <h4 className="font-semibold leading-none text-lg">SEO 223 3Dev Buddy</h4>
             <p className="text-xs text-muted-foreground">
               On-page analysis (Dev Mode)
@@ -294,86 +335,76 @@ export function SeoDevBuddy() {
           </div>
 
           {/* Content Area with Padding */}
-          <div className="p-3 flex flex-col gap-4"> {/* Gap between sections */}
+          <div className="p-3 flex flex-col gap-3"> {/* Reduced gap slightly */}
 
             {/* Section: Essentials */}
-            <div>
+            <div className="p-3 rounded-md bg-muted/20 border border-border/50">
               <div className="flex items-center gap-1.5 mb-2">
-                <h5 className={getCategoryTitleClassName('core')}>Essentials (基础必备)</h5>
+                <h5 className={getCategoryTitleClassName('core')}>Essentials</h5>
                 {renderCategoryIcon('core')}
               </div>
-              {/* Grid for items within the category */}
-              <div className="grid grid-cols-[auto,1fr] gap-x-2 gap-y-1 text-xs">
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Title</span>
-                <span className="text-foreground break-words overflow-hidden">{title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+              <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1.5 text-xs"> {/* Increased gap-x */}
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Title</span>
+                <span className={getItemValueClassName('Title', title, title)}>{title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
 
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Description</span>
-                <span className="text-foreground break-words overflow-hidden">{description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                {/* Description status on new line if needed */}
-                {descriptionStatus !== 'N/A' && descriptionStatus !== 'Good' && (
-                  <span className="col-start-2 text-yellow-500/90">(Status: {descriptionStatus})</span>
-                )}
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Description</span>
+                <span className={getItemValueClassName('Description', descriptionStatus, description)}>{description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
 
-                <span className="font-medium text-foreground/80 whitespace-nowrap">H1 Count</span>
-                <span className="text-foreground break-words overflow-hidden">{h1Info.count}</span>
-                {/* H1 content on new line */}
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">H1 Count</span>
+                <span className={getItemValueClassName('H1 Count', h1Info.count, h1Info.count)}>{h1Info.count}</span>
                 {h1Info.texts.length > 0 && (
-                  <span className="col-start-2 text-muted-foreground/80" title={h1Info.texts.join(', ')}>
+                  <span className="col-start-2 text-muted-foreground/80 text-[11px] -mt-1" title={h1Info.texts.join(', ')}>
                     Content: {h1Info.texts[0]} {h1Info.texts.length > 1 ? `(+${h1Info.texts.length - 1} more)` : ''}
                   </span>
                 )}
 
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Canonical</span>
-                <span className="text-foreground break-words overflow-hidden">{canonicalUrl ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Canonical</span>
+                <span className={getItemValueClassName('Canonical', canonicalUrl, canonicalUrl)}>{canonicalUrl ?? <span className="text-muted-foreground/70">N/A</span>}</span>
 
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Robots</span>
-                <span className="text-foreground break-words overflow-hidden">{metaRobots ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Robots</span>
+                <span className={getItemValueClassName('Robots', metaRobots, metaRobots)}>{metaRobots ?? <span className="text-muted-foreground/70">N/A</span>}</span>
               </div>
             </div>
 
             {/* Section: Rich Results & Sharing */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2 mt-3">
-                <h5 className={getCategoryTitleClassName('og') + " " + getCategoryTitleClassName('twitter') /* Combine classes - crude approach */}>Rich Results & Sharing</h5>
-                {/* Maybe show combined icon? Or remove? For now, remove */}
+            <div className="p-3 rounded-md bg-muted/20 border border-border/50">
+              <div className="flex items-center gap-1.5 mb-2">
+                <h5 className={(getCategoryStatus('og') !== 'success' && getCategoryStatus('og') !== 'neutral') || (getCategoryStatus('twitter') !== 'success' && getCategoryStatus('twitter') !== 'neutral') ? getCategoryTitleClassName('og').replace("text-muted-foreground", "text-yellow-500") : getCategoryTitleClassName('og')}>Rich Results & Sharing</h5>
+                {renderCategoryIcon('og')}
               </div>
-              {/* Grid for items within the category */}
-              <div className="grid grid-cols-[auto,1fr] gap-x-2 gap-y-1 text-xs">
-                {/* OG */}
-                <span className="font-medium text-foreground/80 whitespace-nowrap col-span-2 pt-1">Open Graph:</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">OG Title</span>
-                <span className="text-foreground break-words overflow-hidden">{ogInfo.title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">OG Desc</span>
-                <span className="text-foreground break-words overflow-hidden">{ogInfo.description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">OG Image</span>
-                <span className="text-foreground break-words overflow-hidden">{ogInfo.image ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">OG URL</span>
-                <span className="text-foreground break-words overflow-hidden">{ogInfo.url ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">OG Type</span>
-                <span className="text-foreground break-words overflow-hidden">{ogInfo.type ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                {/* Twitter */}
-                <span className="font-medium text-foreground/80 whitespace-nowrap col-span-2 pt-2">Twitter Card:</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Twitter Card</span>
-                <span className="text-foreground break-words overflow-hidden">{twitterInfo.card ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Twitter Title</span>
-                <span className="text-foreground break-words overflow-hidden">{twitterInfo.title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Twitter Desc</span>
-                <span className="text-foreground break-words overflow-hidden">{twitterInfo.description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Twitter Image</span>
-                <span className="text-foreground break-words overflow-hidden">{twitterInfo.image ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+              <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1.5 text-xs">
+                <span className="font-medium text-muted-foreground col-span-2 pt-1">Open Graph:</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">OG Title</span>
+                <span className={getItemValueClassName('OG Title', ogInfo.title, ogInfo.title)}>{ogInfo.title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">OG Desc</span>
+                <span className={getItemValueClassName('OG Desc', ogInfo.description, ogInfo.description)}>{ogInfo.description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">OG Image</span>
+                <span className={getItemValueClassName('OG Image', ogInfo.image, ogInfo.image)}>{ogInfo.image ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">OG URL</span>
+                <span className={getItemValueClassName('OG URL', ogInfo.url, ogInfo.url)}>{ogInfo.url ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">OG Type</span>
+                <span className={getItemValueClassName('OG Type', ogInfo.type, ogInfo.type)}>{ogInfo.type ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-muted-foreground col-span-2 pt-2">Twitter Card:</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Twitter Card</span>
+                <span className={getItemValueClassName('Twitter Card', twitterInfo.card, twitterInfo.card)}>{twitterInfo.card ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Twitter Title</span>
+                <span className={getItemValueClassName('Twitter Title', twitterInfo.title, twitterInfo.title)}>{twitterInfo.title ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Twitter Desc</span>
+                <span className={getItemValueClassName('Twitter Desc', twitterInfo.description, twitterInfo.description)}>{twitterInfo.description ?? <span className="text-muted-foreground/70">N/A</span>}</span>
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Twitter Image</span>
+                <span className={getItemValueClassName('Twitter Image', twitterInfo.image, twitterInfo.image)}>{twitterInfo.image ?? <span className="text-muted-foreground/70">N/A</span>}</span>
               </div>
             </div>
 
             {/* Section: Content & Accessibility */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2 mt-3">
+            <div className="p-3 rounded-md bg-muted/20 border border-border/50">
+              <div className="flex items-center gap-1.5 mb-2">
                 <h5 className={getCategoryTitleClassName('content')}>Content & Accessibility</h5>
                 {renderCategoryIcon('content')}
               </div>
-              {/* Grid for items within the category */}
-              <div className="grid grid-cols-[auto,1fr] gap-x-2 gap-y-1 text-xs">
-                <span className="font-medium text-foreground/80 whitespace-nowrap">Image Alts</span>
-                <span className="text-foreground break-words overflow-hidden">{`${imageAltInfo.missingAlt} missing / ${imageAltInfo.total} total`}</span>
+              <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1.5 text-xs">
+                <span className="font-medium text-foreground/80 whitespace-nowrap pt-px">Image Alts</span>
+                <span className={getItemValueClassName('Image Alts', imageAltInfo, imageAltInfo)}>{`${imageAltInfo.missingAlt} missing / ${imageAltInfo.total} total`}</span>
               </div>
             </div>
 
