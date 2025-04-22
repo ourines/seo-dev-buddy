@@ -5,8 +5,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '../components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 import { Button } from '../components/ui/button';
-import { SearchCode } from 'lucide-react';
+import { SearchCode, HelpCircle } from 'lucide-react';
 
 interface H1Info {
   count: number;
@@ -103,6 +109,34 @@ const initialState = {
   externalLinkCount: 0,
   wordCount: 0,
 };
+
+// --- Explanations for Check Items ---
+const itemExplanations: Record<string, string> = {
+  'Title': 'The page title (<title> tag) is crucial for SEO. It appears in search results and browser tabs. Keep it concise, relevant, and include target keywords near the beginning. Aim for 50-60 characters.',
+  'Description': 'The meta description provides a summary of the page in search results. Write compelling descriptions (150-160 chars) to encourage clicks. Include relevant keywords.',
+  'H1 Count': 'The H1 tag should represent the main heading of the page. Best practice is to use only one H1 per page. Ensure it accurately reflects the page content.',
+  'Canonical': 'A canonical URL tells search engines the preferred version of a page if multiple URLs show similar content. Helps consolidate link equity and prevent duplicate content issues.',
+  'Robots': 'The meta robots tag instructs search engine crawlers (e.g., \'noindex\' to prevent indexing, \'nofollow\' to prevent following links). \'noindex\' or \'nofollow\' can severely impact visibility.',
+  'HTML Lang': 'Declares the primary language of the page (e.g., \'en\' for English). Helps search engines and assistive technologies understand the content.',
+  'Image Alts': 'Alt text describes images for visually impaired users and search engines. Missing alt text is bad for accessibility and SEO. Describe the image concisely.',
+  'Headings': 'Heading tags (H2-H6) structure your content, making it easier to read for users and search engines. Use headings logically to outline topics. Aim for H2s under the main H1.',
+  'Internal Links': 'Links to other pages on your own website. Helps users navigate and distributes link equity. A good internal linking structure is important for SEO.',
+  'External Links': 'Links to pages on other websites. Can provide context and credibility, but excessive irrelevant external links might be negative. Consider \'nofollow\' for untrusted links.',
+  'Word Count': 'While not a direct ranking factor, very thin content (e.g., <300 words) often struggles to rank for competitive topics. Ensure content is comprehensive and valuable.',
+  'OG Title': 'Open Graph title: How the page title appears when shared on social media (e.g., Facebook). Should be compelling and accurate.',
+  'OG Desc': 'Open Graph description: The summary shown when shared on social media. Aim for ~200 characters.',
+  'OG Image': 'Open Graph image: The image displayed when shared on social media. Use a high-quality, relevant image (recommended 1200x630px).',
+  'OG URL': 'Open Graph URL: The canonical URL of the content being shared.',
+  'OG Type': 'Open Graph type: Describes the type of content (e.g., \'website\', \'article\').',
+  'Twitter Card': 'Specifies the type of Twitter card to use when shared (e.g., \'summary\', \'summary_large_image\').',
+  'Twitter Title': 'Title used specifically for Twitter shares. Defaults to OG Title if not set.',
+  'Twitter Desc': 'Description used for Twitter shares. Defaults to OG Description if not set.',
+  'Twitter Image': 'Image used for Twitter shares. Defaults to OG Image if not set.',
+  'Viewport': 'The viewport meta tag controls the page layout on mobile browsers. Essential for mobile-friendliness.',
+  'Structured Data': 'Schema markup (like JSON-LD) helps search engines understand the content context, potentially enabling rich snippets in search results.',
+  'Publication Date': 'Indicates when an article was published (often using \'article:published_time\'). Useful for time-sensitive content and helps Google understand freshness.',
+};
+// --- End Explanations ---
 
 export function SeoDevBuddy() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -386,6 +420,7 @@ export function SeoDevBuddy() {
     // --- End item status calculation ---
 
     const finalDisplayValue = displayValue ?? <span className="text-muted-foreground/70">N/A</span>;
+    const explanation = itemExplanations[label]; // Get explanation text
 
     return (
       <div
@@ -395,7 +430,24 @@ export function SeoDevBuddy() {
         }}
       >
         <div className="flex items-start gap-x-2">
-          <span className="font-medium text-foreground/80 flex-shrink-0 whitespace-nowrap pt-px">{label}:</span>
+          {/* Label and Optional Tooltip */}
+          <span className="font-medium text-foreground/80 flex-shrink-0 whitespace-nowrap pt-px flex items-center gap-1">
+            {label}:
+            {explanation && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent
+                  className="break-words text-xs bg-popover text-popover-foreground border border-border p-2 rounded shadow-lg"
+                  style={{ width: '300px' }}
+                >
+                  <p>{explanation}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </span>
+          {/* Value */}
           <span className="text-foreground break-words overflow-hidden flex-grow pt-px text-left">
             {finalDisplayValue}
           </span>
@@ -457,45 +509,47 @@ export function SeoDevBuddy() {
               Analyzing...
             </div>
           ) : (
-            <div className="p-3 flex flex-col gap-3">
-              <SeoCheckSection title="Essentials">
-                {renderCheckItem('Title', seoData.title)}
-                {renderCheckItem('Description', seoData.description, descriptionDetails)}
-                {renderCheckItem('H1 Count', seoData.h1Info.count, h1Details)}
-                {renderCheckItem('Canonical', seoData.canonicalUrl)}
-                {renderCheckItem('Robots', seoData.metaRobots)}
-                {renderCheckItem('HTML Lang', seoData.htmlLang)}
-              </SeoCheckSection>
+            <TooltipProvider delayDuration={300}>
+              <div className="p-3 flex flex-col gap-3">
+                <SeoCheckSection title="Essentials">
+                  {renderCheckItem('Title', seoData.title)}
+                  {renderCheckItem('Description', seoData.description, descriptionDetails)}
+                  {renderCheckItem('H1 Count', seoData.h1Info.count, h1Details)}
+                  {renderCheckItem('Canonical', seoData.canonicalUrl)}
+                  {renderCheckItem('Robots', seoData.metaRobots)}
+                  {renderCheckItem('HTML Lang', seoData.htmlLang)}
+                </SeoCheckSection>
 
-              <SeoCheckSection title="Content & Accessibility">
-                {renderCheckItem('Image Alts', `${seoData.imageAltInfo.missingAlt} missing / ${seoData.imageAltInfo.total} total`)}
-                {renderCheckItem('Headings', formatHeadingCounts(seoData.headingStructure))}
-                {renderCheckItem('Internal Links', seoData.internalLinkCount)}
-                {renderCheckItem('External Links', seoData.externalLinkCount)}
-                {renderCheckItem('Word Count', seoData.wordCount)}
-              </SeoCheckSection>
+                <SeoCheckSection title="Content & Accessibility">
+                  {renderCheckItem('Image Alts', `${seoData.imageAltInfo.missingAlt} missing / ${seoData.imageAltInfo.total} total`)}
+                  {renderCheckItem('Headings', formatHeadingCounts(seoData.headingStructure))}
+                  {renderCheckItem('Internal Links', seoData.internalLinkCount)}
+                  {renderCheckItem('External Links', seoData.externalLinkCount)}
+                  {renderCheckItem('Word Count', seoData.wordCount)}
+                </SeoCheckSection>
 
-              <SeoCheckSection title="Open Graph">
-                {renderCheckItem('OG Title', seoData.ogInfo.title)}
-                {renderCheckItem('OG Desc', seoData.ogInfo.description)}
-                {renderCheckItem('OG Image', seoData.ogInfo.image)}
-                {renderCheckItem('OG URL', seoData.ogInfo.url)}
-                {renderCheckItem('OG Type', seoData.ogInfo.type)}
-              </SeoCheckSection>
+                <SeoCheckSection title="Open Graph">
+                  {renderCheckItem('OG Title', seoData.ogInfo.title)}
+                  {renderCheckItem('OG Desc', seoData.ogInfo.description)}
+                  {renderCheckItem('OG Image', seoData.ogInfo.image)}
+                  {renderCheckItem('OG URL', seoData.ogInfo.url)}
+                  {renderCheckItem('OG Type', seoData.ogInfo.type)}
+                </SeoCheckSection>
 
-              <SeoCheckSection title="Twitter Card">
-                {renderCheckItem('Twitter Card', seoData.twitterInfo.card)}
-                {renderCheckItem('Twitter Title', seoData.twitterInfo.title)}
-                {renderCheckItem('Twitter Desc', seoData.twitterInfo.description)}
-                {renderCheckItem('Twitter Image', seoData.twitterInfo.image)}
-              </SeoCheckSection>
+                <SeoCheckSection title="Twitter Card">
+                  {renderCheckItem('Twitter Card', seoData.twitterInfo.card)}
+                  {renderCheckItem('Twitter Title', seoData.twitterInfo.title)}
+                  {renderCheckItem('Twitter Desc', seoData.twitterInfo.description)}
+                  {renderCheckItem('Twitter Image', seoData.twitterInfo.image)}
+                </SeoCheckSection>
 
-              <SeoCheckSection title="Technical SEO">
-                {renderCheckItem('Viewport', seoData.viewportMeta)}
-                {renderCheckItem('Structured Data', seoData.hasStructuredData ? 'Detected' : 'Not Detected')}
-                {renderCheckItem('Publication Date', seoData.publicationDate)}
-              </SeoCheckSection>
-            </div>
+                <SeoCheckSection title="Technical SEO">
+                  {renderCheckItem('Viewport', seoData.viewportMeta)}
+                  {renderCheckItem('Structured Data', seoData.hasStructuredData ? 'Detected' : 'Not Detected')}
+                  {renderCheckItem('Publication Date', seoData.publicationDate)}
+                </SeoCheckSection>
+              </div>
+            </TooltipProvider>
           )}
         </div>
       </PopoverContent>
