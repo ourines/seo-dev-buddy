@@ -1,0 +1,32 @@
+{
+  "name": "@ourines/seo-dev-buddy",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "autoprefixer": "10.4.13",
+    "postcss": "8.4.38",
+    "shadcn-ui": "^0.9.5",
+    "tailwindcss": "^4.1.4",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "dependencies": {
+    "@radix-ui/react-popover": "^1.1.10",
+    "@radix-ui/react-separator": "^1.1.4",
+    "@radix-ui/react-slot": "^1.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.487.0",
+    "react-shadow": "^20.6.0",
+    "tailwind-merge": "^3.2.0"
+  }
+}
