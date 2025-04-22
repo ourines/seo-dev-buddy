@@ -98,6 +98,7 @@ const initialState = {
   viewportMeta: null as string | null,
   hasStructuredData: false,
   headingStructure: { h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 } as HeadingStructure,
+  publicationDate: null as string | null,
 };
 
 export function SeoDevBuddy() {
@@ -152,6 +153,7 @@ export function SeoDevBuddy() {
             htmlLang: document.documentElement.getAttribute('lang'),
             viewportMeta: getMetaContent('meta[name="viewport"]'),
             hasStructuredData: !!document.querySelector('script[type="application/ld+json"]'),
+            publicationDate: getMetaContent('meta[property="article:published_time"]'),
             headingStructure: {
               h2: document.querySelectorAll('h2').length,
               h3: document.querySelectorAll('h3').length,
@@ -240,11 +242,19 @@ export function SeoDevBuddy() {
       case 'Structured Data':
         return statusValue ? 'success' : 'warning'; // Warn if not detected
       case 'Headings':
+        // Add warning if H1 exists but no H2 tags are found
+        const headings = statusValue as HeadingStructure;
+        const h1Exists = seoData.h1Info.count > 0; // Check if H1 exists from seoData state
+        if (h1Exists && headings.h2 === 0) {
+          return 'warning';
+        }
         return 'success';
+      case 'Publication Date':
+        return statusValue ? 'success' : 'success'; // Success if present, also success (neutral) if absent
       default:
         return 'success';
     }
-  }, []);
+  }, [seoData.h1Info.count]);
 
   // Function to render a single check item
   const renderCheckItem = useCallback((
@@ -281,6 +291,7 @@ export function SeoDevBuddy() {
         'Twitter Image': 'twitterInfo',
         'Viewport': 'viewportMeta',
         'Structured Data': 'hasStructuredData',
+        'Publication Date': 'publicationDate',
       };
       const dataKey = keyMap[label];
 
@@ -405,6 +416,7 @@ export function SeoDevBuddy() {
               <SeoCheckSection title="Technical SEO">
                 {renderCheckItem('Viewport', seoData.viewportMeta)}
                 {renderCheckItem('Structured Data', seoData.hasStructuredData ? 'Detected' : 'Not Detected')}
+                {renderCheckItem('Publication Date', seoData.publicationDate)}
               </SeoCheckSection>
             </div>
           )}
