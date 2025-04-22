@@ -612,12 +612,13 @@ export function SeoDevBuddy() {
           size="icon"
           className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 border border-primary-foreground/20"
           aria-label="Open SEO Dev Buddy"
+          style={{ bottom: '1rem' }}
         >
           <SearchCode className="h-6 w-6" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        style={{ maxWidth: '420px' }}
+        style={{ maxWidth: '420px', maxHeight: '60vh' }}
         className="mr-4 mb-2 bg-background shadow-xl border border-border rounded-lg text-foreground text-sm max-h-[60vh] overflow-y-auto p-0"
         side="top"
         align="end"
