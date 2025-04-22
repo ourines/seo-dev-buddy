@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '../components/ui/tooltip';
 import { Button } from '../components/ui/button';
-import { SearchCode, HelpCircle } from 'lucide-react';
+import { SearchCode, HelpCircle, ClipboardCopy } from 'lucide-react';
 
 interface H1Info {
   count: number;
@@ -142,6 +142,7 @@ export function SeoDevBuddy() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [seoData, setSeoData] = useState(initialState);
+  const [copyStatus, setCopyStatus] = useState('Copy JSON'); // State for copy button feedback
 
   // Fetch and analyze data when popover opens
   useEffect(() => {
@@ -330,13 +331,9 @@ export function SeoDevBuddy() {
       case 'Viewport':
       case 'Canonical':
       case 'OG Title':
-      case 'OG Desc':
-      case 'OG Image':
-      case 'OG URL':
       case 'OG Type':
       case 'Twitter Card':
       case 'Twitter Title':
-      case 'Twitter Desc':
       case 'Twitter Image':
         return statusValue ? 'success' : 'warning';
       case 'Structured Data':
@@ -356,6 +353,14 @@ export function SeoDevBuddy() {
         return 'success';
       case 'Word Count':
         return statusValue >= 300 ? 'success' : 'warning'; // Warn if less than 300 words
+      case 'OG Desc':
+        // Add log to check the received value
+        console.log(`[getItemStatusLevel] Checking OG Desc:`, statusValue);
+        return statusValue ? 'success' : 'warning';
+      case 'Twitter Desc':
+        // Add log to check the received value
+        console.log(`[getItemStatusLevel] Checking Twitter Desc:`, statusValue);
+        return statusValue ? 'success' : 'warning';
       default:
         return 'success';
     }
@@ -475,6 +480,130 @@ export function SeoDevBuddy() {
     )
   );
 
+  // --- Function to generate structured SEO data ---
+  const getStructuredSeoData = useCallback(() => {
+    if (isLoading) return null; // Don't generate if still loading
+
+    const sections: { [key: string]: { items: any[], status?: StatusLevel } } = {
+      Essentials: { items: [] },
+      ContentAccessibility: { items: [] },
+      OpenGraph: { items: [] },
+      TwitterCard: { items: [] },
+      TechnicalSEO: { items: [] },
+    };
+
+    // Helper to add item data
+    const addItem = (section: string, label: string, rawValue: any, displayValueOverride?: any, detailsNode?: ReactNode) => {
+      let valueToCheck: any;
+      // Determine the value used for status calculation
+      if (label === 'Description') {
+        valueToCheck = seoData.descriptionStatus;
+      } else if (label === 'H1 Count') {
+        valueToCheck = seoData.h1Info.count;
+      } else if (label === 'Image Alts') {
+        valueToCheck = seoData.imageAltInfo;
+      } else if (label === 'Headings') {
+        valueToCheck = seoData.headingStructure;
+      } else if (label.startsWith('OG')) {
+        const ogProp = label.split(' ')[1].toLowerCase() as keyof OpenGraphInfo;
+        valueToCheck = seoData.ogInfo[ogProp]; // Correctly get specific OG value
+      } else if (label.startsWith('Twitter')) {
+        const twitterProp = label.split(' ')[1].toLowerCase() as keyof TwitterCardInfo;
+        valueToCheck = seoData.twitterInfo[twitterProp]; // Correctly get specific Twitter value
+      } else {
+        // Default mapping for most other fields
+        const keyMap: { [key: string]: keyof typeof seoData | null } = {
+          'Title': 'title', 'Canonical': 'canonicalUrl', 'Robots': 'metaRobots',
+          'HTML Lang': 'htmlLang', 'Viewport': 'viewportMeta',
+          'Structured Data': 'hasStructuredData', 'Publication Date': 'publicationDate',
+          'Internal Links': 'internalLinkCount', 'External Links': 'externalLinkCount', 'Word Count': 'wordCount'
+        };
+        const dataKey = keyMap[label];
+        valueToCheck = dataKey ? seoData[dataKey as keyof typeof initialState] : rawValue;
+      }
+
+      const itemStatus = getItemStatusLevel(label, valueToCheck);
+      const displayValue = displayValueOverride ?? rawValue ?? 'N/A';
+
+      // ... (detailsToString function) ...
+      const detailsToString = (node: ReactNode): string | null => {
+        if (node === null || node === undefined || typeof node === 'boolean') {
+          return null;
+        }
+        if (typeof node === 'string' || typeof node === 'number') {
+          return String(node);
+        }
+        // Very basic handling for React elements - might lose structure/attributes
+        if (React.isValidElement(node) && node.props.children) {
+          // Recursively try to get text content, handle arrays
+          const children = React.Children.toArray(node.props.children);
+          return children.map(child => detailsToString(child)).filter(s => s !== null).join('');
+        }
+        return null; // Fallback for complex nodes
+      };
+
+      sections[section].items.push({
+        label,
+        rawValue: rawValue,
+        displayValue: displayValue,
+        status: itemStatus,
+        explanation: itemExplanations[label] || null,
+        details: detailsNode ? detailsToString(detailsNode) : null,
+      });
+    };
+
+    // Populate sections
+    addItem('Essentials', 'Title', seoData.title, seoData.title);
+    addItem('Essentials', 'Description', seoData.description, seoData.description, descriptionDetails);
+    addItem('Essentials', 'H1 Count', seoData.h1Info.count, seoData.h1Info.count, h1Details);
+    addItem('Essentials', 'Canonical', seoData.canonicalUrl, seoData.canonicalUrl);
+    addItem('Essentials', 'Robots', seoData.metaRobots, seoData.metaRobots);
+    addItem('Essentials', 'HTML Lang', seoData.htmlLang, seoData.htmlLang);
+
+    addItem('ContentAccessibility', 'Image Alts', seoData.imageAltInfo, `${seoData.imageAltInfo.missingAlt} missing / ${seoData.imageAltInfo.total} total`);
+    addItem('ContentAccessibility', 'Headings', seoData.headingStructure, formatHeadingCounts(seoData.headingStructure));
+    addItem('ContentAccessibility', 'Internal Links', seoData.internalLinkCount, seoData.internalLinkCount);
+    addItem('ContentAccessibility', 'External Links', seoData.externalLinkCount, seoData.externalLinkCount);
+    addItem('ContentAccessibility', 'Word Count', seoData.wordCount, seoData.wordCount);
+
+    addItem('OpenGraph', 'OG Title', seoData.ogInfo.title, seoData.ogInfo.title);
+    addItem('OpenGraph', 'OG Desc', seoData.ogInfo.description, seoData.ogInfo.description);
+    addItem('OpenGraph', 'OG Image', seoData.ogInfo.image, seoData.ogInfo.image);
+    addItem('OpenGraph', 'OG URL', seoData.ogInfo.url, seoData.ogInfo.url);
+    addItem('OpenGraph', 'OG Type', seoData.ogInfo.type, seoData.ogInfo.type);
+
+    addItem('TwitterCard', 'Twitter Card', seoData.twitterInfo.card, seoData.twitterInfo.card);
+    addItem('TwitterCard', 'Twitter Title', seoData.twitterInfo.title, seoData.twitterInfo.title);
+    addItem('TwitterCard', 'Twitter Desc', seoData.twitterInfo.description, seoData.twitterInfo.description);
+    addItem('TwitterCard', 'Twitter Image', seoData.twitterInfo.image, seoData.twitterInfo.image);
+
+    addItem('TechnicalSEO', 'Viewport', seoData.viewportMeta, seoData.viewportMeta);
+    addItem('TechnicalSEO', 'Structured Data', seoData.hasStructuredData, seoData.hasStructuredData ? 'Detected' : 'Not Detected');
+    addItem('TechnicalSEO', 'Publication Date', seoData.publicationDate, seoData.publicationDate);
+
+    return sections;
+  }, [isLoading, seoData, getItemStatusLevel]); // Refined dependencies
+  // --- End structured data function ---
+
+  // --- Function to handle copy to clipboard ---
+  const handleCopyJson = useCallback(async () => {
+    const data = getStructuredSeoData();
+    if (!data) return;
+
+    try {
+      const jsonString = JSON.stringify(data, null, 2); // Pretty print JSON
+      await navigator.clipboard.writeText(jsonString);
+      setCopyStatus('Copied!');
+      setTimeout(() => setCopyStatus('Copy JSON'), 1500); // Reset after 1.5s
+      console.log("[SEO Dev Buddy] Copied data:", data);
+    } catch (err) {
+      console.error('[SEO Dev Buddy] Failed to copy JSON:', err);
+      setCopyStatus('Failed!');
+      setTimeout(() => setCopyStatus('Copy JSON'), 1500);
+    }
+  }, [getStructuredSeoData]);
+  // --- End copy handler ---
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -495,12 +624,24 @@ export function SeoDevBuddy() {
         onOpenAutoFocus={(e: Event) => e.preventDefault()}
       >
         <div className="flex flex-col">
-          {/* Header */}
-          <div className="p-3 pb-2 space-y-1 border-b border-border sticky top-0 bg-background z-10">
-            <h4 className="font-semibold leading-none text-lg">SEO Dev Buddy</h4>
-            <p className="text-xs text-muted-foreground">
-              On-page analysis (Dev Mode)
-            </p>
+          {/* Header with Copy Button */}
+          <div className="p-3 pb-2 flex justify-between items-center border-b border-border sticky top-0 bg-background z-10">
+            <div>
+              <h4 className="font-semibold leading-none text-lg">SEO Dev Buddy</h4>
+              <p className="text-xs text-muted-foreground">
+                On-page analysis (Dev Mode)
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyJson}
+              disabled={isLoading}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              <ClipboardCopy className="h-3 w-3 mr-1" />
+              {copyStatus}
+            </Button>
           </div>
 
           {/* Conditional Rendering based on isLoading */}
