@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 // Use relative paths for components within the same package
 import {
-  Popover,
+  PopoverRoot,
   PopoverContent,
   PopoverTrigger,
-} from '../components/ui/popover';
+} from '../components/ui';
 import {
-  Tooltip,
+  TooltipRoot,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../components/ui/tooltip';
-import { Button } from '../components/ui/button';
+} from '../components/ui';
+import { Button } from '../components/ui';
 import { SearchCode, HelpCircle, ClipboardCopy } from 'lucide-react';
 
 interface H1Info {
@@ -184,7 +184,7 @@ export function SeoDevBuddy() {
                   externalLinks++;
                 }
                 // Ignore mailto:, tel:, etc.
-              } catch (e) {
+              } catch {
                 // Ignore invalid URLs
                 if (href.startsWith('/') || href.startsWith('#')) {
                   internalLinks++; // Treat relative paths/fragments as internal
@@ -318,15 +318,17 @@ export function SeoDevBuddy() {
         return statusValue === 'Good' ? 'success' : 'warning';
       case 'H1 Count':
         return statusValue === 1 ? 'success' : 'warning';
-      case 'Robots':
+      case 'Robots': {
         const valueString = String(statusValue).toLowerCase();
         return (valueString.includes('noindex') || valueString.includes('nofollow') || valueString.includes('none')) ? 'error' : 'success';
-      case 'Image Alts':
+      }
+      case 'Image Alts': {
         const info = statusValue as ImageAltInfo;
         if (info.total === 0) return 'success';
         if (info.missingAlt === info.total && info.total > 0) return 'error';
         if (info.missingAlt > 0) return 'warning';
         return 'success';
+      }
       case 'HTML Lang':
       case 'Viewport':
       case 'Canonical':
@@ -338,7 +340,7 @@ export function SeoDevBuddy() {
         return statusValue ? 'success' : 'warning';
       case 'Structured Data':
         return statusValue ? 'success' : 'warning'; // Warn if not detected
-      case 'Headings':
+      case 'Headings': {
         // Add warning if H1 exists but no H2 tags are found
         const headings = statusValue as HeadingStructure;
         const h1Exists = seoData.h1Info.count > 0; // Check if H1 exists from seoData state
@@ -346,6 +348,7 @@ export function SeoDevBuddy() {
           return 'warning';
         }
         return 'success';
+      }
       case 'Publication Date':
         return statusValue ? 'success' : 'success'; // Success if present, also success (neutral) if absent
       case 'Internal Links':
@@ -439,7 +442,7 @@ export function SeoDevBuddy() {
           <span className="font-medium text-foreground/80 flex-shrink-0 whitespace-nowrap pt-px flex items-center gap-1">
             {label}:
             {explanation && (
-              <Tooltip>
+              <TooltipRoot>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
                 </TooltipTrigger>
@@ -449,7 +452,7 @@ export function SeoDevBuddy() {
                 >
                   <p>{explanation}</p>
                 </TooltipContent>
-              </Tooltip>
+              </TooltipRoot>
             )}
           </span>
           {/* Value */}
@@ -605,17 +608,15 @@ export function SeoDevBuddy() {
   // --- End copy handler ---
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <PopoverRoot open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="default"
-          size="icon"
-          className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 border border-primary-foreground/20"
+        <button
+          className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-blue-600 text-white hover:bg-blue-700 border border-white/20 inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           aria-label="Open SEO Dev Buddy"
           style={{ bottom: '1rem' }}
         >
           <SearchCode className="h-6 w-6" />
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent
         style={{ maxWidth: '420px', maxHeight: '60vh' }}
@@ -695,6 +696,6 @@ export function SeoDevBuddy() {
           )}
         </div>
       </PopoverContent>
-    </Popover>
+    </PopoverRoot>
   );
 }

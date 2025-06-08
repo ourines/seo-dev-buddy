@@ -3,8 +3,92 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/seo-dev-buddy/src",
   "projectType": "library",
-  "tags": [],
+  "tags": [
+    "type:lib",
+    "scope:seo"
+  ],
   "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "packages/seo-dev-buddy/dist"
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production"
+        }
+      }
+    },
+    "dev": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "seo-dev-buddy:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "seo-dev-buddy:build:development",
+          "hmr": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": [
+        "{options.reportsDirectory}"
+      ],
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "../../coverage/packages/seo-dev-buddy"
+      }
+    },
+    "test:watch": {
+      "executor": "@nx/vite:test",
+      "options": {
+        "passWithNoTests": true,
+        "watch": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "packages/seo-dev-buddy/**/*.{ts,tsx,js,jsx}"
+        ]
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "packages/seo-dev-buddy"
+      }
+    },
+    "preview": {
+      "executor": "@nx/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "seo-dev-buddy:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "seo-dev-buddy:build:development"
+        },
+        "production": {
+          "buildTarget": "seo-dev-buddy:build:production"
+        }
+      }
+    },
     "nx-release-publish": {
       "options": {
         "packageRoot": "dist/{projectRoot}"
