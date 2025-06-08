@@ -11,6 +11,7 @@ import type {
   SEOCheckConfig,
   SEOStatusLevel,
   SEOCheckCategory,
+  SEOMessage,
   MetaTagInfo,
   HeadingStructure,
   ImageAltInfo,
@@ -31,11 +32,32 @@ import {
   LINK_RULES,
   SEO_MESSAGES,
   HELP_URLS,
+  SCORE_WEIGHTS,
 } from '../constants';
 
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
+
+/**
+ * Get message from SEO_MESSAGES constant with fallback
+ */
+function getMessage(category: keyof typeof SEO_MESSAGES, type: string): SEOMessage {
+  const messageCategory = SEO_MESSAGES[category];
+  if (messageCategory && messageCategory[type as keyof typeof messageCategory]) {
+    return messageCategory[type as keyof typeof messageCategory] as SEOMessage;
+  }
+
+  // Fallback message structure
+  return {
+    message: 'SEO check completed',
+    recommendation: 'Review the results and take appropriate action',
+    actionSteps: ['Review the check results', 'Take appropriate action'],
+    priority: 'medium',
+    impact: 'medium',
+    effort: 'medium'
+  };
+}
 
 /**
  * Create a standardized SEO check result
@@ -51,7 +73,10 @@ function createCheckResult(
   recommendation: string,
   isCritical = false,
   details?: Record<string, any>,
-  helpUrl?: string
+  helpUrl?: string,
+  score?: number,
+  weight?: number,
+  enhancedMessage?: SEOMessage
 ): SEOCheckResult {
   return {
     id,
@@ -62,9 +87,12 @@ function createCheckResult(
     displayValue,
     description,
     recommendation,
+    enhancedMessage,
     isCritical,
     details,
     helpUrl,
+    score,
+    weight,
   };
 }
 
@@ -107,6 +135,7 @@ export function checkTitle(metaTags: MetaTagInfo): SEOCheckResult {
   const { title } = metaTags;
 
   if (!title || title.trim() === '') {
+    const enhancedMsg = getMessage('TITLE', 'missing');
     return createCheckResult(
       SEO_CHECK_IDS.TITLE,
       'Title Tag',
@@ -114,17 +143,21 @@ export function checkTitle(metaTags: MetaTagInfo): SEOCheckResult {
       'error',
       null,
       'Missing',
-      'Page is missing a title tag',
-      'Add a unique, descriptive title tag between 30-60 characters',
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       undefined,
-      'https://developers.google.com/search/docs/appearance/title-link'
+      HELP_URLS.TITLE,
+      0,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.TITLE],
+      enhancedMsg
     );
   }
 
   const length = title.length;
 
   if (length < TITLE_RULES.MIN_LENGTH) {
+    const enhancedMsg = getMessage('TITLE', 'tooShort');
     return createCheckResult(
       SEO_CHECK_IDS.TITLE,
       'Title Tag',
@@ -132,15 +165,19 @@ export function checkTitle(metaTags: MetaTagInfo): SEOCheckResult {
       'warning',
       title,
       `${length} characters`,
-      `Title is too short (${length} characters)`,
-      `Expand title to at least ${TITLE_RULES.MIN_LENGTH} characters for better SEO`,
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       { length, minLength: TITLE_RULES.MIN_LENGTH },
-      'https://developers.google.com/search/docs/appearance/title-link'
+      HELP_URLS.TITLE,
+      30,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.TITLE],
+      enhancedMsg
     );
   }
 
   if (length > TITLE_RULES.MAX_LENGTH) {
+    const enhancedMsg = getMessage('TITLE', 'tooLong');
     return createCheckResult(
       SEO_CHECK_IDS.TITLE,
       'Title Tag',
@@ -148,14 +185,18 @@ export function checkTitle(metaTags: MetaTagInfo): SEOCheckResult {
       'warning',
       title,
       `${length} characters`,
-      `Title is too long (${length} characters)`,
-      `Shorten title to under ${TITLE_RULES.MAX_LENGTH} characters to avoid truncation`,
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       { length, maxLength: TITLE_RULES.MAX_LENGTH },
-      'https://developers.google.com/search/docs/appearance/title-link'
+      HELP_URLS.TITLE,
+      60,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.TITLE],
+      enhancedMsg
     );
   }
 
+  const enhancedMsg = getMessage('TITLE', 'optimal');
   return createCheckResult(
     SEO_CHECK_IDS.TITLE,
     'Title Tag',
@@ -163,11 +204,14 @@ export function checkTitle(metaTags: MetaTagInfo): SEOCheckResult {
     'success',
     title,
     `${length} characters`,
-    'Title length is optimal',
-    'Title follows best practices for length and should perform well in search results',
+    enhancedMsg.message,
+    enhancedMsg.recommendation,
     true,
     { length },
-    'https://developers.google.com/search/docs/appearance/title-link'
+    HELP_URLS.TITLE,
+    100,
+    SCORE_WEIGHTS[SEO_CHECK_IDS.TITLE],
+    enhancedMsg
   );
 }
 
@@ -178,6 +222,7 @@ export function checkDescription(metaTags: MetaTagInfo): SEOCheckResult {
   const { description } = metaTags;
 
   if (!description || description.trim() === '') {
+    const enhancedMsg = getMessage('DESCRIPTION', 'missing');
     return createCheckResult(
       SEO_CHECK_IDS.DESCRIPTION,
       'Meta Description',
@@ -185,17 +230,21 @@ export function checkDescription(metaTags: MetaTagInfo): SEOCheckResult {
       'error',
       null,
       'Missing',
-      'Page is missing a meta description',
-      'Add a compelling meta description between 120-160 characters',
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       undefined,
-      'https://developers.google.com/search/docs/appearance/snippet'
+      HELP_URLS.DESCRIPTION,
+      0,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.DESCRIPTION],
+      enhancedMsg
     );
   }
 
   const length = description.length;
 
   if (length < DESCRIPTION_RULES.MIN_LENGTH) {
+    const enhancedMsg = getMessage('DESCRIPTION', 'tooShort');
     return createCheckResult(
       SEO_CHECK_IDS.DESCRIPTION,
       'Meta Description',
@@ -203,15 +252,19 @@ export function checkDescription(metaTags: MetaTagInfo): SEOCheckResult {
       'warning',
       description,
       `${length} characters`,
-      `Meta description is too short (${length} characters)`,
-      `Expand description to at least ${DESCRIPTION_RULES.MIN_LENGTH} characters`,
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       { length, minLength: DESCRIPTION_RULES.MIN_LENGTH },
-      'https://developers.google.com/search/docs/appearance/snippet'
+      HELP_URLS.DESCRIPTION,
+      40,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.DESCRIPTION],
+      enhancedMsg
     );
   }
 
   if (length > DESCRIPTION_RULES.MAX_LENGTH) {
+    const enhancedMsg = getMessage('DESCRIPTION', 'tooLong');
     return createCheckResult(
       SEO_CHECK_IDS.DESCRIPTION,
       'Meta Description',
@@ -219,14 +272,18 @@ export function checkDescription(metaTags: MetaTagInfo): SEOCheckResult {
       'warning',
       description,
       `${length} characters`,
-      `Meta description is too long (${length} characters)`,
-      `Shorten description to under ${DESCRIPTION_RULES.MAX_LENGTH} characters`,
+      enhancedMsg.message,
+      enhancedMsg.recommendation,
       true,
       { length, maxLength: DESCRIPTION_RULES.MAX_LENGTH },
-      'https://developers.google.com/search/docs/appearance/snippet'
+      HELP_URLS.DESCRIPTION,
+      70,
+      SCORE_WEIGHTS[SEO_CHECK_IDS.DESCRIPTION],
+      enhancedMsg
     );
   }
 
+  const enhancedMsg = getMessage('DESCRIPTION', 'optimal');
   return createCheckResult(
     SEO_CHECK_IDS.DESCRIPTION,
     'Meta Description',
@@ -234,11 +291,14 @@ export function checkDescription(metaTags: MetaTagInfo): SEOCheckResult {
     'success',
     description,
     `${length} characters`,
-    'Meta description length is optimal',
-    'Description follows best practices and should display well in search results',
+    enhancedMsg.message,
+    enhancedMsg.recommendation,
     true,
     { length },
-    'https://developers.google.com/search/docs/appearance/snippet'
+    HELP_URLS.DESCRIPTION,
+    100,
+    SCORE_WEIGHTS[SEO_CHECK_IDS.DESCRIPTION],
+    enhancedMsg
   );
 }
 

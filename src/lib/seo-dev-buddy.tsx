@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
+import { HelpCircle, X, Copy, Check, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle, Info, SearchCode, ClipboardCopy } from 'lucide-react';
+
+// Import enhanced SEO checking functionality
+import { performSEOChecks } from '../utils/seo-checker';
+import { analyzePage } from '../utils/dom-analyzer';
+import type { SEOReport, SEOCheckResult } from '../types';
+
 // Use relative paths for components within the same package
 import {
+  Button,
   PopoverRoot,
   PopoverContent,
   PopoverTrigger,
-} from '../components/ui';
-import {
   TooltipRoot,
+  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  Badge,
+  Progress,
 } from '../components/ui';
-import { Button } from '../components/ui';
-import { SearchCode, HelpCircle, ClipboardCopy } from 'lucide-react';
 
 interface H1Info {
   count: number;

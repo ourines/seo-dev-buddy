@@ -15,6 +15,39 @@
 export type SEOStatusLevel = 'error' | 'warning' | 'success' | 'info';
 
 /**
+ * Priority levels for SEO issues
+ */
+export type SEOPriority = 'critical' | 'high' | 'medium' | 'low';
+
+/**
+ * Impact levels for SEO issues
+ */
+export type SEOImpact = 'high' | 'medium' | 'low';
+
+/**
+ * Effort levels for fixing SEO issues
+ */
+export type SEOEffort = 'high' | 'medium' | 'low';
+
+/**
+ * Enhanced SEO message structure with detailed recommendations
+ */
+export interface SEOMessage {
+  /** Main error/warning message */
+  message: string;
+  /** Detailed recommendation for improvement */
+  recommendation: string;
+  /** Step-by-step action items */
+  actionSteps: string[];
+  /** Priority level for fixing this issue */
+  priority: SEOPriority;
+  /** Expected impact on SEO performance */
+  impact: SEOImpact;
+  /** Estimated effort required to fix */
+  effort: SEOEffort;
+}
+
+/**
  * SEO check categories for organizing different types of checks
  */
 export type SEOCheckCategory =
@@ -264,16 +297,22 @@ export interface SEOCheckResult {
   value: any;
   /** Display value (formatted for UI) */
   displayValue: string;
-  /** Detailed explanation */
+  /** Detailed explanation (legacy) */
   description: string;
-  /** Recommendation for improvement */
+  /** Recommendation for improvement (legacy) */
   recommendation: string;
+  /** Enhanced message with detailed recommendations */
+  enhancedMessage?: SEOMessage;
   /** Whether this check is critical for SEO */
   isCritical: boolean;
   /** Additional details or context */
   details?: Record<string, any>;
   /** Help URL for more information */
   helpUrl?: string;
+  /** Score contribution (0-100) */
+  score?: number;
+  /** Weight for overall score calculation */
+  weight?: number;
 }
 
 /**

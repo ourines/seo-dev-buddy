@@ -292,39 +292,384 @@ export const STRUCTURED_DATA_SCHEMAS: Record<StructuredDataType, {
 // ============================================================================
 
 /**
- * Standard error messages for SEO checks
+ * Enhanced error messages with detailed recommendations and action steps
  */
 export const SEO_MESSAGES = {
   TITLE: {
-    missing: 'Page title is missing. Add a descriptive <title> tag.',
-    tooShort: `Title is too short (under ${TITLE_RULES.MIN_LENGTH} characters). Consider adding more descriptive text.`,
-    tooLong: `Title is too long (over ${TITLE_RULES.MAX_LENGTH} characters). Google may truncate it in search results.`,
-    optimal: 'Title length is optimal for search results.',
+    missing: {
+      message: 'Page title is missing. Add a descriptive <title> tag.',
+      recommendation: 'Add a unique, descriptive title that accurately represents the page content.',
+      actionSteps: [
+        'Add a <title> tag in the <head> section',
+        'Keep it between 30-60 characters',
+        'Include your primary keyword near the beginning',
+        'Make it unique for each page',
+        'Write for users, not just search engines'
+      ],
+      priority: 'critical',
+      impact: 'high',
+      effort: 'low'
+    },
+    tooShort: {
+      message: `Title is too short (under ${TITLE_RULES.MIN_LENGTH} characters). Consider adding more descriptive text.`,
+      recommendation: 'Expand your title to provide more context and include relevant keywords.',
+      actionSteps: [
+        'Add descriptive words that explain what the page is about',
+        'Include your primary keyword if not already present',
+        'Consider adding your brand name at the end',
+        'Aim for 50-60 characters for optimal display'
+      ],
+      priority: 'high',
+      impact: 'medium',
+      effort: 'low'
+    },
+    tooLong: {
+      message: `Title is too long (over ${TITLE_RULES.MAX_LENGTH} characters). Google may truncate it in search results.`,
+      recommendation: 'Shorten your title while keeping the most important keywords at the beginning.',
+      actionSteps: [
+        'Remove unnecessary words and filler text',
+        'Keep the most important keywords at the start',
+        'Consider moving brand name to the end or removing it',
+        'Test how it appears in search results'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'Title length is optimal for search results.',
+      recommendation: 'Your title follows best practices. Ensure it accurately represents your content.',
+      actionSteps: [
+        'Verify the title matches your page content',
+        'Consider A/B testing different variations',
+        'Monitor click-through rates in search results'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
   },
   DESCRIPTION: {
-    missing: 'Meta description is missing. Add a compelling description to improve click-through rates.',
-    tooShort: `Description is too short (under ${DESCRIPTION_RULES.MIN_LENGTH} characters). Add more detail to entice users.`,
-    tooLong: `Description is too long (over ${DESCRIPTION_RULES.MAX_LENGTH} characters). Google may truncate it.`,
-    optimal: 'Meta description length is optimal.',
+    missing: {
+      message: 'Meta description is missing. Add a compelling description to improve click-through rates.',
+      recommendation: 'Write a compelling meta description that summarizes your page content and encourages clicks.',
+      actionSteps: [
+        'Add a <meta name="description" content="..."> tag',
+        'Write 150-160 characters of compelling copy',
+        'Include your primary keyword naturally',
+        'Focus on benefits and value proposition',
+        'Include a call-to-action when appropriate'
+      ],
+      priority: 'critical',
+      impact: 'high',
+      effort: 'low'
+    },
+    tooShort: {
+      message: `Description is too short (under ${DESCRIPTION_RULES.MIN_LENGTH} characters). Add more detail to entice users.`,
+      recommendation: 'Expand your description to provide more compelling reasons for users to click.',
+      actionSteps: [
+        'Add more details about what users will find on the page',
+        'Include benefits and value propositions',
+        'Mention key features or unique selling points',
+        'Use action-oriented language'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'low'
+    },
+    tooLong: {
+      message: `Description is too long (over ${DESCRIPTION_RULES.MAX_LENGTH} characters). Google may truncate it.`,
+      recommendation: 'Shorten your description while keeping the most compelling information at the beginning.',
+      actionSteps: [
+        'Move the most important information to the beginning',
+        'Remove redundant or less important details',
+        'Ensure the truncated version still makes sense',
+        'Test how it appears in search results'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'Meta description length is optimal.',
+      recommendation: 'Your description length is good. Ensure it\'s compelling and relevant.',
+      actionSteps: [
+        'Review if it accurately represents your content',
+        'Consider testing different variations',
+        'Monitor click-through rates from search results'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
   },
   H1: {
-    missing: 'No H1 tag found. Add a main heading to structure your content.',
-    multiple: 'Multiple H1 tags found. Use only one H1 per page for better SEO.',
-    optimal: 'H1 structure is optimal.',
+    missing: {
+      message: 'No H1 tag found. Add a main heading to structure your content.',
+      recommendation: 'Add a single, descriptive H1 tag that clearly indicates what the page is about.',
+      actionSteps: [
+        'Add an <h1> tag with your main page topic',
+        'Make it descriptive and include your primary keyword',
+        'Ensure it\'s different from your title tag',
+        'Use only one H1 per page',
+        'Follow with H2, H3 tags for content hierarchy'
+      ],
+      priority: 'critical',
+      impact: 'high',
+      effort: 'low'
+    },
+    multiple: {
+      message: 'Multiple H1 tags found. Use only one H1 per page for better SEO.',
+      recommendation: 'Convert additional H1 tags to H2 or H3 tags to create proper heading hierarchy.',
+      actionSteps: [
+        'Keep only the most important H1 tag',
+        'Convert other H1 tags to H2 or H3',
+        'Ensure proper heading hierarchy (H1 > H2 > H3)',
+        'Make sure each heading is descriptive',
+        'Review content structure for logical flow'
+      ],
+      priority: 'high',
+      impact: 'medium',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'H1 structure is optimal.',
+      recommendation: 'Your H1 structure follows best practices. Ensure it accurately represents your content.',
+      actionSteps: [
+        'Verify H1 content matches page topic',
+        'Check that it includes relevant keywords',
+        'Ensure it\'s engaging for users'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
   },
   CONTENT: {
-    tooShort: `Content is too short (under ${CONTENT_RULES.MIN_WORD_COUNT} words). Consider adding more valuable content.`,
-    optimal: 'Content length meets recommended guidelines.',
+    tooShort: {
+      message: `Content is too short (under ${CONTENT_RULES.MIN_WORD_COUNT} words). Consider adding more valuable content.`,
+      recommendation: 'Expand your content to provide more comprehensive information on your topic.',
+      actionSteps: [
+        'Add more detailed explanations and examples',
+        'Include relevant subtopics and related information',
+        'Add supporting data, statistics, or case studies',
+        'Consider adding FAQ sections',
+        'Ensure all content adds value for users'
+      ],
+      priority: 'medium',
+      impact: 'high',
+      effort: 'high'
+    },
+    optimal: {
+      message: 'Content length meets recommended guidelines.',
+      recommendation: 'Your content length is good. Focus on quality and user value.',
+      actionSteps: [
+        'Ensure content is well-structured and scannable',
+        'Add relevant internal and external links',
+        'Include multimedia elements when appropriate',
+        'Regularly update content to keep it fresh'
+      ],
+      priority: 'low',
+      impact: 'medium',
+      effort: 'medium'
+    }
   },
   IMAGES: {
-    missingAlt: 'Some images are missing alt text. Add descriptive alt attributes for accessibility and SEO.',
-    optimal: 'All images have appropriate alt text.',
+    missingAlt: {
+      message: 'Some images are missing alt text. Add descriptive alt attributes for accessibility and SEO.',
+      recommendation: 'Add descriptive alt text to all images to improve accessibility and help search engines understand your content.',
+      actionSteps: [
+        'Add alt="" attributes to all <img> tags',
+        'Write descriptive text that explains what\'s in the image',
+        'Include relevant keywords naturally',
+        'Keep alt text under 125 characters',
+        'Use empty alt="" for decorative images'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'medium'
+    },
+    optimal: {
+      message: 'All images have appropriate alt text.',
+      recommendation: 'Your image optimization is good. Ensure alt text is descriptive and relevant.',
+      actionSteps: [
+        'Review alt text for accuracy and relevance',
+        'Ensure alt text includes relevant keywords naturally',
+        'Consider adding captions for important images'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
   },
   ROBOTS: {
-    noindex: 'Page is set to noindex. This prevents search engines from indexing the page.',
-    nofollow: 'Page is set to nofollow. This prevents search engines from following links.',
-    optimal: 'Robots meta tag allows proper indexing.',
+    noindex: {
+      message: 'Page is set to noindex. This prevents search engines from indexing the page.',
+      recommendation: 'Remove noindex directive if you want this page to appear in search results.',
+      actionSteps: [
+        'Remove or modify the robots meta tag',
+        'Change "noindex" to "index" if appropriate',
+        'Verify this page should be indexed',
+        'Check for conflicting directives in robots.txt',
+        'Monitor indexing status in Search Console'
+      ],
+      priority: 'critical',
+      impact: 'high',
+      effort: 'low'
+    },
+    nofollow: {
+      message: 'Page is set to nofollow. This prevents search engines from following links.',
+      recommendation: 'Remove nofollow directive if you want search engines to follow links on this page.',
+      actionSteps: [
+        'Remove or modify the robots meta tag',
+        'Change "nofollow" to "follow" if appropriate',
+        'Review if this setting is intentional',
+        'Consider impact on link equity distribution'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'Robots meta tag allows proper indexing.',
+      recommendation: 'Your robots configuration is appropriate for search engine indexing.',
+      actionSteps: [
+        'Monitor indexing status in Search Console',
+        'Ensure robots.txt doesn\'t conflict with meta robots',
+        'Review periodically for any needed changes'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
   },
+  CANONICAL: {
+    missing: {
+      message: 'Canonical URL is missing. Add a canonical tag to prevent duplicate content issues.',
+      recommendation: 'Add a canonical link tag to specify the preferred version of this page.',
+      actionSteps: [
+        'Add <link rel="canonical" href="..."> in the <head>',
+        'Use the full, absolute URL',
+        'Ensure it points to the preferred version',
+        'Use HTTPS if available',
+        'Include trailing slashes consistently'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'low'
+    },
+    invalid: {
+      message: 'Canonical URL appears to be invalid or malformed.',
+      recommendation: 'Fix the canonical URL to ensure it points to a valid, accessible page.',
+      actionSteps: [
+        'Verify the canonical URL is accessible',
+        'Use absolute URLs instead of relative ones',
+        'Ensure proper URL encoding',
+        'Check for typos in the URL',
+        'Test the canonical URL in a browser'
+      ],
+      priority: 'high',
+      impact: 'medium',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'Canonical URL is properly configured.',
+      recommendation: 'Your canonical URL setup helps prevent duplicate content issues.',
+      actionSteps: [
+        'Verify canonical URLs are accessible',
+        'Monitor for any crawl errors in Search Console',
+        'Ensure consistency across similar pages'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
+  },
+  VIEWPORT: {
+    missing: {
+      message: 'Viewport meta tag is missing. Add it for mobile-friendly display.',
+      recommendation: 'Add a viewport meta tag to ensure your page displays correctly on mobile devices.',
+      actionSteps: [
+        'Add <meta name="viewport" content="width=device-width, initial-scale=1"> to <head>',
+        'Test page display on various mobile devices',
+        'Ensure responsive design works properly',
+        'Use Mobile-Friendly Test tool to verify'
+      ],
+      priority: 'high',
+      impact: 'high',
+      effort: 'low'
+    },
+    optimal: {
+      message: 'Viewport meta tag is properly configured for mobile devices.',
+      recommendation: 'Your mobile configuration follows best practices.',
+      actionSteps: [
+        'Test on various mobile devices and screen sizes',
+        'Ensure touch targets are appropriately sized',
+        'Verify text is readable without zooming'
+      ],
+      priority: 'low',
+      impact: 'low',
+      effort: 'low'
+    }
+  },
+  SOCIAL: {
+    ogMissing: {
+      message: 'Open Graph tags are missing. Add them to improve social media sharing.',
+      recommendation: 'Add Open Graph meta tags to control how your page appears when shared on social media.',
+      actionSteps: [
+        'Add og:title, og:description, og:image, og:url meta tags',
+        'Use compelling titles and descriptions for social sharing',
+        'Include high-quality images (1200x630px recommended)',
+        'Test sharing appearance on Facebook and LinkedIn'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'medium'
+    },
+    twitterMissing: {
+      message: 'Twitter Card tags are missing. Add them to improve Twitter sharing.',
+      recommendation: 'Add Twitter Card meta tags to optimize how your page appears when shared on Twitter.',
+      actionSteps: [
+        'Add twitter:card, twitter:title, twitter:description meta tags',
+        'Include twitter:image for visual appeal',
+        'Choose appropriate card type (summary, summary_large_image)',
+        'Test with Twitter Card Validator'
+      ],
+      priority: 'low',
+      impact: 'medium',
+      effort: 'medium'
+    }
+  },
+  STRUCTURED_DATA: {
+    missing: {
+      message: 'No structured data found. Consider adding Schema.org markup.',
+      recommendation: 'Add structured data to help search engines understand your content better.',
+      actionSteps: [
+        'Identify appropriate Schema.org types for your content',
+        'Add JSON-LD structured data to your page',
+        'Include required and recommended properties',
+        'Test with Google\'s Rich Results Test tool',
+        'Monitor for rich snippet opportunities'
+      ],
+      priority: 'low',
+      impact: 'medium',
+      effort: 'high'
+    },
+    invalid: {
+      message: 'Structured data contains errors or invalid markup.',
+      recommendation: 'Fix structured data errors to ensure search engines can process it correctly.',
+      actionSteps: [
+        'Use Google\'s Rich Results Test to identify errors',
+        'Fix syntax errors in JSON-LD markup',
+        'Ensure all required properties are included',
+        'Validate against Schema.org specifications',
+        'Test after making corrections'
+      ],
+      priority: 'medium',
+      impact: 'medium',
+      effort: 'medium'
+    }
+  }
 } as const;
 
 /**
